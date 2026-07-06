@@ -12,29 +12,29 @@ import (
 const (
 	digcfPresent         = 0x00000002
 	digcfDeviceInterface = 0x00000010
-	genericRead         = 0x80000000
-	fileShareRead       = 0x00000001
-	fileShareWrite      = 0x00000002
-	hidpStatusSuccess   = 0x00110000
-	openExisting        = 3
+	genericRead          = 0x80000000
+	fileShareRead        = 0x00000001
+	fileShareWrite       = 0x00000002
+	hidpStatusSuccess    = 0x00110000
+	openExisting         = 3
 )
 
 var (
-	hidDLL     = syscall.NewLazyDLL("hid.dll")
-	setupDLL   = syscall.NewLazyDLL("setupapi.dll")
-	kernelDLL  = syscall.NewLazyDLL("kernel32.dll")
-	procGUID   = hidDLL.NewProc("HidD_GetHidGuid")
-	procAttr   = hidDLL.NewProc("HidD_GetAttributes")
-	procPrep   = hidDLL.NewProc("HidD_GetPreparsedData")
-	procFree   = hidDLL.NewProc("HidD_FreePreparsedData")
-	procCaps   = hidDLL.NewProc("HidP_GetCaps")
-	procClass  = setupDLL.NewProc("SetupDiGetClassDevsW")
-	procEnum   = setupDLL.NewProc("SetupDiEnumDeviceInterfaces")
-	procDetail = setupDLL.NewProc("SetupDiGetDeviceInterfaceDetailW")
+	hidDLL      = syscall.NewLazyDLL("hid.dll")
+	setupDLL    = syscall.NewLazyDLL("setupapi.dll")
+	kernelDLL   = syscall.NewLazyDLL("kernel32.dll")
+	procGUID    = hidDLL.NewProc("HidD_GetHidGuid")
+	procAttr    = hidDLL.NewProc("HidD_GetAttributes")
+	procPrep    = hidDLL.NewProc("HidD_GetPreparsedData")
+	procFree    = hidDLL.NewProc("HidD_FreePreparsedData")
+	procCaps    = hidDLL.NewProc("HidP_GetCaps")
+	procClass   = setupDLL.NewProc("SetupDiGetClassDevsW")
+	procEnum    = setupDLL.NewProc("SetupDiEnumDeviceInterfaces")
+	procDetail  = setupDLL.NewProc("SetupDiGetDeviceInterfaceDetailW")
 	procDestroy = setupDLL.NewProc("SetupDiDestroyDeviceInfoList")
-	procCreate = kernelDLL.NewProc("CreateFileW")
-	procRead   = kernelDLL.NewProc("ReadFile")
-	procClose  = kernelDLL.NewProc("CloseHandle")
+	procCreate  = kernelDLL.NewProc("CreateFileW")
+	procRead    = kernelDLL.NewProc("ReadFile")
+	procClose   = kernelDLL.NewProc("CloseHandle")
 )
 
 type guid struct {
@@ -45,10 +45,10 @@ type guid struct {
 }
 
 type deviceInterfaceData struct {
-	Size                uint32
-	InterfaceClassGuid  guid
-	Flags               uint32
-	Reserved            uintptr
+	Size               uint32
+	InterfaceClassGuid guid
+	Flags              uint32
+	Reserved           uintptr
 }
 
 type hidAttributes struct {

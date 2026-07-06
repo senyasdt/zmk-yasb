@@ -2,7 +2,7 @@
 
 Windows bridge for showing a ZMK keyboard layer in YASB.
 
-The YASB side keeps the same JSON contract as the existing `vial_layer` custom widget. The firmware sends numeric layer state over raw HID, and `zmk-helperd` writes `%APPDATA%\vial-helper\state.json` atomically.
+The YASB side uses a separate `zmk_layer` custom widget. The firmware sends numeric layer state and battery state over raw HID, and `zmk-helperd` writes `%APPDATA%\zmk-yasb\state.json` atomically.
 
 ## GitHub check
 
@@ -36,6 +36,7 @@ byte 1: top layer
 byte 2-3: effective layer mask, little endian
 byte 4-5: default layer mask, little endian
 byte 6-7: temporary layer mask, little endian
+byte 8: battery percentage, 0-100
 ```
 
 2. Compatibility report from `zmk-kblayerhelper`:
@@ -127,13 +128,13 @@ You can also pass VID/PID as hex flags:
 Use the ready-to-paste files in `yasb/`, or add the same frontend contract manually:
 
 ```yaml
-vial_layer:
+zmk_layer:
   type: "yasb.custom.CustomWidget"
   options:
-    label: "<span>⌨</span> {data[label]}"
-    label_alt: "<span>⌨</span> {data[label]} · {data[effective]}"
+    label: "<span>⌨</span> {data[status]} · {data[label]} · {data[battery_label]}"
+    label_alt: "<span>⌨</span> {data[status]} · {data[label]} · {data[effective]} · {data[battery_label]}"
     exec_options:
-      run_cmd: 'cmd /c type %APPDATA%\vial-helper\state.json'
+      run_cmd: 'cmd /c type %APPDATA%\zmk-yasb\state.json'
       run_interval: 250
       return_format: "json"
 ```
@@ -141,6 +142,6 @@ vial_layer:
 ## Current limitations
 
 - USB HID only.
-- The firmware reports top layer, effective active-layer mask, default layer mask, and a derived temporary mask.
+- The firmware reports top layer, effective active-layer mask, default layer mask, derived temporary mask, and battery percentage.
 - The temporary mask is computed as `effective & ~default`, so it is a practical approximation rather than a separate ZMK source of truth.
 - The Go helper is intended to be built and run on Windows. On other OSes it compiles only as a stub for the HID layer.

@@ -17,7 +17,7 @@ bars:
 The helper must be running and writing:
 
 ```text
-%APPDATA%\vial-helper\state.json
+%APPDATA%\zmk-yasb\state.json
 ```
 
 The widget expects this JSON shape:
@@ -30,6 +30,10 @@ The widget expects this JSON shape:
   "effective": "0, 1",
   "temp": "1",
   "default": "0",
-  "tooltip": "Top: SYMBOLS\nEffective: 0, 1\nTemporary: 1\nDefault: 0"
+  "connected": true,
+  "status": "ON",
+  "battery": 87,
+  "battery_label": "87%",
+  "tooltip": "Status: ON\nBattery: 87%\nTop: SYMBOLS\nEffective: 0, 1\nTemporary: 1\nDefault: 0"
 }
 ```

@@ -3,7 +3,7 @@
   "pid": 24926,
   "usage_page": 65376,
   "usage": 97,
-  "output": "%APPDATA%\\vial-helper\\state.json",
+  "output": "%APPDATA%\\zmk-yasb\\state.json",
   "poll": "250ms",
   "report_bytes": 33,
   "layers": {

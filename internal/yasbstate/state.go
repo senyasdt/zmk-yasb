@@ -11,47 +11,84 @@ import (
 )
 
 type State struct {
-	Label     string `json:"label"`
-	Top       int    `json:"top"`
-	Name      string `json:"name"`
-	Effective string `json:"effective"`
-	Temp      string `json:"temp"`
-	Default   string `json:"default"`
-	Tooltip   string `json:"tooltip"`
+	Label        string `json:"label"`
+	Top          int    `json:"top"`
+	Name         string `json:"name"`
+	Effective    string `json:"effective"`
+	Temp         string `json:"temp"`
+	Default      string `json:"default"`
+	Connected    bool   `json:"connected"`
+	Status       string `json:"status"`
+	Battery      int    `json:"battery"`
+	BatteryLabel string `json:"battery_label"`
+	Tooltip      string `json:"tooltip"`
 }
 
 func Offline() State {
 	return State{
-		Label:     "OFF",
-		Top:       -1,
-		Name:      "Keyboard disconnected",
-		Effective: "-",
-		Temp:      "-",
-		Default:   "-",
-		Tooltip:   "ZMK keyboard is not connected",
+		Label:        "OFF",
+		Top:          -1,
+		Name:         "Keyboard disconnected",
+		Effective:    "-",
+		Temp:         "-",
+		Default:      "-",
+		Connected:    false,
+		Status:       "OFF",
+		Battery:      -1,
+		BatteryLabel: "-",
+		Tooltip:      "ZMK keyboard is not connected",
 	}
 }
 
-func FromReport(top int, effectiveMask, defaultMask, tempMask uint32, layers map[string]string) State {
+func ConnectedUnknown() State {
+	return State{
+		Label:        "WAIT",
+		Top:          -1,
+		Name:         "Keyboard connected",
+		Effective:    "-",
+		Temp:         "-",
+		Default:      "-",
+		Connected:    true,
+		Status:       "ON",
+		Battery:      -1,
+		BatteryLabel: "-",
+		Tooltip:      "ZMK keyboard is connected; waiting for layer report",
+	}
+}
+
+func FromReport(top int, effectiveMask, defaultMask, tempMask uint32, battery int, layers map[string]string) State {
 	name := layerName(top, layers)
 	effective := maskString(effectiveMask)
 	temp := maskString(tempMask)
 	def := maskString(defaultMask)
+	batteryLabel := batteryString(battery)
 	return State{
-		Label:     name,
-		Top:       top,
-		Name:      name,
-		Effective: effective,
-		Temp:      temp,
-		Default:   def,
+		Label:        name,
+		Top:          top,
+		Name:         name,
+		Effective:    effective,
+		Temp:         temp,
+		Default:      def,
+		Connected:    true,
+		Status:       "ON",
+		Battery:      battery,
+		BatteryLabel: batteryLabel,
 		Tooltip: fmt.Sprintf(
-			"Top: %s\nEffective: %s\nTemporary: %s\nDefault: %s",
+			"Status: ON\nBattery: %s\nTop: %s\nEffective: %s\nTemporary: %s\nDefault: %s",
+			batteryLabel,
 			name,
 			effective,
 			temp,
 			def,
 		),
 	}
+}
+
+func batteryString(battery int) string {
+	if battery < 0 || battery > 100 {
+		return "-"
+	}
+	return fmt.Sprintf("%d%%", battery)
 }
 
 func WriteAtomic(path string, state State) error {

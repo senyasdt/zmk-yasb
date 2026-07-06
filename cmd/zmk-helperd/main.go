@@ -40,7 +40,7 @@ func defaultConfig() config {
 	return config{
 		UsagePage:   defaultUsagePage,
 		Usage:       defaultUsage,
-		Output:      filepath.Join(os.Getenv("APPDATA"), "vial-helper", "state.json"),
+		Output:      filepath.Join(os.Getenv("APPDATA"), "zmk-yasb", "state.json"),
 		Poll:        "250ms",
 		ReportBytes: 32,
 		Layers: map[string]string{
@@ -155,6 +155,9 @@ func run(ctx context.Context, cfg config, poll time.Duration, once bool) error {
 	}
 	defer device.Close()
 	log.Printf("connected: %s", device.Path())
+	if err := yasbstate.WriteAtomic(cfg.Output, yasbstate.ConnectedUnknown()); err != nil {
+		return fmt.Errorf("write connected state: %w", err)
+	}
 
 	reportBytes := cfg.ReportBytes
 	if int(device.InputReportBytes()) > reportBytes {
@@ -168,7 +171,7 @@ func run(ctx context.Context, cfg config, poll time.Duration, once bool) error {
 		}
 		report, ok := parseReport(buf[:n])
 		if ok {
-			state := yasbstate.FromReport(report.TopLayer, report.EffectiveMask, report.DefaultMask, report.TempMask, cfg.Layers)
+			state := yasbstate.FromReport(report.TopLayer, report.EffectiveMask, report.DefaultMask, report.TempMask, report.Battery, cfg.Layers)
 			if err := yasbstate.WriteAtomic(cfg.Output, state); err != nil {
 				return fmt.Errorf("write YASB state: %w", err)
 			}
@@ -192,6 +195,7 @@ type layerReport struct {
 	EffectiveMask uint32
 	DefaultMask   uint32
 	TempMask      uint32
+	Battery       int
 }
 
 func parseReport(data []byte) (layerReport, bool) {
@@ -206,7 +210,7 @@ func parseReport(data []byte) (layerReport, bool) {
 		if err != nil {
 			return layerReport{}, false
 		}
-		return layerReport{TopLayer: n, EffectiveMask: layerBit(n)}, true
+		return layerReport{TopLayer: n, EffectiveMask: layerBit(n), Battery: -1}, true
 	}
 
 	offset := 0
@@ -221,11 +225,15 @@ func parseReport(data []byte) (layerReport, bool) {
 	effective := uint32(data[offset+2]) | uint32(data[offset+3])<<8
 	defaultMask := uint32(0)
 	tempMask := uint32(0)
+	battery := -1
 	if len(data[offset:]) >= 8 {
 		defaultMask = uint32(data[offset+4]) | uint32(data[offset+5])<<8
 		tempMask = uint32(data[offset+6]) | uint32(data[offset+7])<<8
 	}
-	return layerReport{TopLayer: top, EffectiveMask: effective, DefaultMask: defaultMask, TempMask: tempMask}, true
+	if len(data[offset:]) >= 9 && data[offset+8] <= 100 {
+		battery = int(data[offset+8])
+	}
+	return layerReport{TopLayer: top, EffectiveMask: effective, DefaultMask: defaultMask, TempMask: tempMask, Battery: battery}, true
 }
 
 func trimZeros(data []byte) []byte {

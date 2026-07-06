@@ -4,3 +4,11 @@ config ZMK_YASB_LAYER_STATUS
     depends on RAW_HID
     help
       Send compact layer status reports over raw HID for a Windows YASB helper.
+
+config ZMK_YASB_LAYER_STATUS_HEARTBEAT_MS
+    int "ZMK YASB layer status heartbeat interval in milliseconds"
+    default 5000
+    depends on ZMK_YASB_LAYER_STATUS
+    help
+      Send a periodic status report so the host can learn current layer and battery state
+      even when no layer changes happen after the helper starts.
