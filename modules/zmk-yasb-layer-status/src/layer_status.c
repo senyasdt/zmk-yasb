@@ -29,8 +29,7 @@ static void send_layer_report(void) {
     const uint8_t top = zmk_keymap_highest_layer_active();
     const uint32_t effective = zmk_keymap_layer_state();
     const uint32_t default_mask = layer_bit(zmk_keymap_layer_default());
-    const uint32_t locked_mask = zmk_keymap_layer_locks();
-    const uint32_t temp_mask = effective & ~(default_mask | locked_mask);
+    const uint32_t temp_mask = effective & ~default_mask;
 
     if (top == last_top_layer && effective == last_effective_mask) {
         return;
@@ -47,7 +46,7 @@ static void send_layer_report(void) {
         .temp_mask = sys_cpu_to_le16((uint16_t)temp_mask),
     };
 
-    raise_raw_hid_send_event((struct raw_hid_send_event){
+    raise_raw_hid_sent_event((struct raw_hid_sent_event){
         .data = (uint8_t *)&report,
         .length = ZMK_YASB_REPORT_SIZE,
     });

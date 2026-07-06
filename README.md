@@ -142,5 +142,5 @@ vial_layer:
 
 - USB HID only.
 - The firmware reports top layer, effective active-layer mask, default layer mask, and a derived temporary mask.
-- The temporary mask is computed as `effective & ~(default|locked)`, so it is a practical approximation rather than a separate ZMK source of truth.
+- The temporary mask is computed as `effective & ~default`, so it is a practical approximation rather than a separate ZMK source of truth.
 - The Go helper is intended to be built and run on Windows. On other OSes it compiles only as a stub for the HID layer.
