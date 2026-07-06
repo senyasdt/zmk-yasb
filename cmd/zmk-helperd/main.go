@@ -65,9 +65,22 @@ func main() {
 		configPath = flag.String("config", "", "path to config JSON")
 		vidFlag    = flag.String("vid", "", "USB VID in hex, for example 0x1D50")
 		pidFlag    = flag.String("pid", "", "USB PID in hex")
+		list       = flag.Bool("list", false, "list visible HID devices and exit")
 		once       = flag.Bool("once", false, "read one report and exit")
 	)
 	flag.Parse()
+
+	if *list {
+		infos, err := hid.List()
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, info := range infos {
+			fmt.Printf("VID=%04X PID=%04X usage_page=%04X usage=%04X input=%d path=%s\n",
+				info.VID, info.PID, info.UsagePage, info.Usage, info.InputBytes, info.Path)
+		}
+		return
+	}
 
 	cfg := defaultConfig()
 	if *configPath != "" {
@@ -143,7 +156,11 @@ func run(ctx context.Context, cfg config, poll time.Duration, once bool) error {
 	defer device.Close()
 	log.Printf("connected: %s", device.Path())
 
-	buf := make([]byte, cfg.ReportBytes)
+	reportBytes := cfg.ReportBytes
+	if int(device.InputReportBytes()) > reportBytes {
+		reportBytes = int(device.InputReportBytes())
+	}
+	buf := make([]byte, reportBytes)
 	for {
 		n, err := device.Read(buf)
 		if err != nil {

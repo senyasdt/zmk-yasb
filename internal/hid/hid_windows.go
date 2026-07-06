@@ -78,8 +78,9 @@ type hidCaps struct {
 }
 
 type windowsDevice struct {
-	path   string
-	handle uintptr
+	path       string
+	handle     uintptr
+	inputBytes uint16
 }
 
 func OpenFirst(filter Filter) (Device, error) {
@@ -101,8 +102,32 @@ func OpenFirst(filter Filter) (Device, error) {
 	return nil, fmt.Errorf("no HID device matched VID=%04X PID=%04X usage_page=%04X usage=%04X", filter.VID, filter.PID, filter.UsagePage, filter.Usage)
 }
 
+func List() ([]Info, error) {
+	paths, err := enumeratePaths()
+	if err != nil {
+		return nil, err
+	}
+	var infos []Info
+	for _, path := range paths {
+		dev, err := openPath(path)
+		if err != nil {
+			continue
+		}
+		info, err := dev.info()
+		_ = dev.Close()
+		if err == nil {
+			infos = append(infos, info)
+		}
+	}
+	return infos, nil
+}
+
 func (d *windowsDevice) Path() string {
 	return d.path
+}
+
+func (d *windowsDevice) InputReportBytes() uint16 {
+	return d.inputBytes
 }
 
 func (d *windowsDevice) Close() error {
@@ -136,28 +161,41 @@ func (d *windowsDevice) Read(buf []byte) (int, error) {
 }
 
 func (d *windowsDevice) matches(filter Filter) (bool, error) {
+	info, err := d.info()
+	if err != nil {
+		return false, err
+	}
+	d.inputBytes = info.InputBytes
+	return info.VID == filter.VID && info.PID == filter.PID && info.UsagePage == filter.UsagePage && info.Usage == filter.Usage, nil
+}
+
+func (d *windowsDevice) info() (Info, error) {
 	attr := hidAttributes{Size: uint32(unsafe.Sizeof(hidAttributes{}))}
 	r, _, err := procAttr.Call(d.handle, uintptr(unsafe.Pointer(&attr)))
 	if r == 0 {
-		return false, err
-	}
-	if attr.VendorID != filter.VID || attr.ProductID != filter.PID {
-		return false, nil
+		return Info{}, err
 	}
 
 	var prep uintptr
 	r, _, err = procPrep.Call(d.handle, uintptr(unsafe.Pointer(&prep)))
 	if r == 0 {
-		return false, err
+		return Info{}, err
 	}
 	defer procFree.Call(prep)
 
 	var caps hidCaps
 	r, _, err = procCaps.Call(prep, uintptr(unsafe.Pointer(&caps)))
 	if r != hidpStatusSuccess {
-		return false, err
+		return Info{}, err
 	}
-	return caps.UsagePage == filter.UsagePage && caps.Usage == filter.Usage, nil
+	return Info{
+		Path:       d.path,
+		VID:        attr.VendorID,
+		PID:        attr.ProductID,
+		UsagePage:  caps.UsagePage,
+		Usage:      caps.Usage,
+		InputBytes: caps.InputReportByteLength,
+	}, nil
 }
 
 func enumeratePaths() ([]string, error) {

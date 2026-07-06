@@ -1,11 +1,11 @@
 {
   "vid": 7504,
-  "pid": 24866,
+  "pid": 24926,
   "usage_page": 65376,
   "usage": 97,
   "output": "%APPDATA%\\vial-helper\\state.json",
   "poll": "250ms",
-  "report_bytes": 32,
+  "report_bytes": 33,
   "layers": {
     "0": "QWERTY",
     "1": "SYMBOLS",

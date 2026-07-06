@@ -27,8 +27,8 @@ static uint32_t layer_bit(uint8_t layer) {
 
 static void send_layer_report(void) {
     const uint8_t top = zmk_keymap_highest_layer_active();
-    const uint32_t effective = zmk_keymap_layer_state();
     const uint32_t default_mask = layer_bit(zmk_keymap_layer_default());
+    const uint32_t effective = zmk_keymap_layer_state() | default_mask;
     const uint32_t temp_mask = effective & ~default_mask;
 
     if (top == last_top_layer && effective == last_effective_mask) {

@@ -98,7 +98,7 @@ Edit `config.example.json` for your keyboard VID/PID and layer names. Decimal va
 ```json
 {
   "vid": 7504,
-  "pid": 24866,
+  "pid": 24926,
   "usage_page": 65376,
   "usage": 97
 }
@@ -119,7 +119,7 @@ Run:
 You can also pass VID/PID as hex flags:
 
 ```powershell
-.\zmk-helperd.exe -vid 0x1D50 -pid 0x6122
+.\zmk-helperd.exe -vid 0x1D50 -pid 0x615E
 ```
 
 ## YASB widget
