@@ -23,6 +23,7 @@ const (
 	defaultUsagePage = 0xFF60
 	defaultUsage     = 0x61
 	reportID         = 0x7A
+	batteryMarker    = 0xB1
 )
 
 type config struct {
@@ -171,7 +172,7 @@ func run(ctx context.Context, cfg config, poll time.Duration, once bool) error {
 		}
 		report, ok := parseReport(buf[:n])
 		if ok {
-			state := yasbstate.FromReport(report.TopLayer, report.EffectiveMask, report.DefaultMask, report.TempMask, report.Battery, cfg.Layers)
+			state := yasbstate.FromReport(report.TopLayer, report.EffectiveMask, report.DefaultMask, report.TempMask, report.BatteryRight, report.BatteryLeft, cfg.Layers)
 			if err := yasbstate.WriteAtomic(cfg.Output, state); err != nil {
 				return fmt.Errorf("write YASB state: %w", err)
 			}
@@ -195,7 +196,8 @@ type layerReport struct {
 	EffectiveMask uint32
 	DefaultMask   uint32
 	TempMask      uint32
-	Battery       int
+	BatteryRight  int
+	BatteryLeft   int
 }
 
 func parseReport(data []byte) (layerReport, bool) {
@@ -210,7 +212,7 @@ func parseReport(data []byte) (layerReport, bool) {
 		if err != nil {
 			return layerReport{}, false
 		}
-		return layerReport{TopLayer: n, EffectiveMask: layerBit(n), Battery: -1}, true
+		return layerReport{TopLayer: n, EffectiveMask: layerBit(n), BatteryRight: -1, BatteryLeft: -1}, true
 	}
 
 	offset := 0
@@ -225,15 +227,19 @@ func parseReport(data []byte) (layerReport, bool) {
 	effective := uint32(data[offset+2]) | uint32(data[offset+3])<<8
 	defaultMask := uint32(0)
 	tempMask := uint32(0)
-	battery := -1
+	batteryRight := -1
+	batteryLeft := -1
 	if len(data[offset:]) >= 8 {
 		defaultMask = uint32(data[offset+4]) | uint32(data[offset+5])<<8
 		tempMask = uint32(data[offset+6]) | uint32(data[offset+7])<<8
 	}
 	if len(data[offset:]) >= 9 && data[offset+8] <= 100 {
-		battery = int(data[offset+8])
+		batteryRight = int(data[offset+8])
 	}
-	return layerReport{TopLayer: top, EffectiveMask: effective, DefaultMask: defaultMask, TempMask: tempMask, Battery: battery}, true
+	if len(data[offset:]) >= 11 && data[offset+9] == batteryMarker && data[offset+10] <= 100 {
+		batteryLeft = int(data[offset+10])
+	}
+	return layerReport{TopLayer: top, EffectiveMask: effective, DefaultMask: defaultMask, TempMask: tempMask, BatteryRight: batteryRight, BatteryLeft: batteryLeft}, true
 }
 
 func trimZeros(data []byte) []byte {

@@ -34,6 +34,11 @@ The widget expects this JSON shape:
   "status": "ON",
   "battery": 87,
   "battery_label": "87%",
-  "tooltip": "Status: ON\nBattery: 87%\nTop: SYMBOLS\nEffective: 0, 1\nTemporary: 1\nDefault: 0"
+  "battery_left": -1,
+  "battery_right": 87,
+  "battery_halves": "L ? / R 87%",
+  "battery_left_label": "?",
+  "battery_right_label": "87%",
+  "tooltip": "Status: ON\nBattery: L ? / R 87%\nTop: SYMBOLS\nEffective: 0, 1\nTemporary: 1\nDefault: 0"
 }
 ```

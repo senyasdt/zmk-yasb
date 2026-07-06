@@ -3,7 +3,7 @@ package yasbstate
 import "testing"
 
 func TestFromReport(t *testing.T) {
-	state := FromReport(1, 0x03, 0x01, 0x02, 87, map[string]string{"1": "SYMBOLS"})
+	state := FromReport(1, 0x03, 0x01, 0x02, 87, 64, map[string]string{"1": "SYMBOLS"})
 	if state.Label != "SYMBOLS" {
 		t.Fatalf("label = %q, want SYMBOLS", state.Label)
 	}
@@ -22,6 +22,9 @@ func TestFromReport(t *testing.T) {
 	if state.BatteryLabel != "87%" {
 		t.Fatalf("battery label = %q, want 87%%", state.BatteryLabel)
 	}
+	if state.BatteryHalves != "L 64% / R 87%" {
+		t.Fatalf("battery halves = %q, want L 64%% / R 87%%", state.BatteryHalves)
+	}
 }
 
 func TestConnectedUnknown(t *testing.T) {
@@ -34,5 +37,8 @@ func TestConnectedUnknown(t *testing.T) {
 	}
 	if state.Battery != -1 {
 		t.Fatalf("battery = %d, want -1", state.Battery)
+	}
+	if state.BatteryHalves != "L ? / R ?" {
+		t.Fatalf("battery halves = %q, want L ? / R ?", state.BatteryHalves)
 	}
 }

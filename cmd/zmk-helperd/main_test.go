@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestParseBinaryReport(t *testing.T) {
-	report, ok := parseReport([]byte{0x7A, 3, 0x09, 0x00, 0x01, 0x00, 0x08, 0x00, 87})
+	report, ok := parseReport([]byte{0x7A, 3, 0x09, 0x00, 0x01, 0x00, 0x08, 0x00, 87, batteryMarker, 64})
 	if !ok {
 		t.Fatal("expected report to parse")
 	}
@@ -19,8 +19,11 @@ func TestParseBinaryReport(t *testing.T) {
 	if report.TempMask != 0x08 {
 		t.Fatalf("temp mask = 0x%X, want 0x08", report.TempMask)
 	}
-	if report.Battery != 87 {
-		t.Fatalf("battery = %d, want 87", report.Battery)
+	if report.BatteryRight != 87 {
+		t.Fatalf("right battery = %d, want 87", report.BatteryRight)
+	}
+	if report.BatteryLeft != 64 {
+		t.Fatalf("left battery = %d, want 64", report.BatteryLeft)
 	}
 }
 

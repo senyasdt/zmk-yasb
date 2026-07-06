@@ -36,7 +36,9 @@ byte 1: top layer
 byte 2-3: effective layer mask, little endian
 byte 4-5: default layer mask, little endian
 byte 6-7: temporary layer mask, little endian
-byte 8: battery percentage, 0-100
+byte 8: right/central battery percentage, 0-100
+byte 9: optional battery extension marker 0xB1
+byte 10: optional left/peripheral battery percentage, 0-100
 ```
 
 2. Compatibility report from `zmk-kblayerhelper`:
@@ -131,17 +133,19 @@ Use the ready-to-paste files in `yasb/`, or add the same frontend contract manua
 zmk_layer:
   type: "yasb.custom.CustomWidget"
   options:
-    label: "<span>⌨</span> {data[status]} · {data[label]} · {data[battery_label]}"
-    label_alt: "<span>⌨</span> {data[status]} · {data[label]} · {data[effective]} · {data[battery_label]}"
+    label: "<span>⌨</span> {data[status]} · {data[label]}"
+    label_alt: "<span>⌨</span> {data[status]} · {data[label]} · {data[battery_halves]}"
     exec_options:
       run_cmd: 'cmd /c type %APPDATA%\zmk-yasb\state.json'
       run_interval: 250
       return_format: "json"
+    callbacks:
+      on_right: "toggle_label"
 ```
 
 ## Current limitations
 
 - USB HID only.
-- The firmware reports top layer, effective active-layer mask, default layer mask, derived temporary mask, and battery percentage.
+- The firmware reports top layer, effective active-layer mask, default layer mask, derived temporary mask, the right/central half battery percentage, and the left/peripheral half battery percentage when `CONFIG_ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING=y` is enabled.
 - The temporary mask is computed as `effective & ~default`, so it is a practical approximation rather than a separate ZMK source of truth.
 - The Go helper is intended to be built and run on Windows. On other OSes it compiles only as a stub for the HID layer.
