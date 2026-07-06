@@ -1,0 +1,96 @@
+package yasbstate
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+)
+
+type State struct {
+	Label     string `json:"label"`
+	Top       int    `json:"top"`
+	Name      string `json:"name"`
+	Effective string `json:"effective"`
+	Temp      string `json:"temp"`
+	Default   string `json:"default"`
+	Tooltip   string `json:"tooltip"`
+}
+
+func Offline() State {
+	return State{
+		Label:     "OFF",
+		Top:       -1,
+		Name:      "Keyboard disconnected",
+		Effective: "-",
+		Temp:      "-",
+		Default:   "-",
+		Tooltip:   "ZMK keyboard is not connected",
+	}
+}
+
+func FromReport(top int, effectiveMask, defaultMask, tempMask uint32, layers map[string]string) State {
+	name := layerName(top, layers)
+	effective := maskString(effectiveMask)
+	temp := maskString(tempMask)
+	def := maskString(defaultMask)
+	return State{
+		Label:     name,
+		Top:       top,
+		Name:      name,
+		Effective: effective,
+		Temp:      temp,
+		Default:   def,
+		Tooltip: fmt.Sprintf(
+			"Top: %s\nEffective: %s\nTemporary: %s\nDefault: %s",
+			name,
+			effective,
+			temp,
+			def,
+		),
+	}
+}
+
+func WriteAtomic(path string, state State) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	raw, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return err
+	}
+	raw = append(raw, '\n')
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, raw, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func layerName(layer int, layers map[string]string) string {
+	if name := layers[strconv.Itoa(layer)]; name != "" {
+		return name
+	}
+	return fmt.Sprintf("LAYER %d", layer)
+}
+
+func maskString(mask uint32) string {
+	if mask == 0 {
+		return "-"
+	}
+	var layers []int
+	for i := 0; i < 32; i++ {
+		if mask&(1<<uint(i)) != 0 {
+			layers = append(layers, i)
+		}
+	}
+	sort.Ints(layers)
+	parts := make([]string, 0, len(layers))
+	for _, layer := range layers {
+		parts = append(parts, strconv.Itoa(layer))
+	}
+	return strings.Join(parts, ", ")
+}

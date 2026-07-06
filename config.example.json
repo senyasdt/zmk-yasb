@@ -1,0 +1,23 @@
+{
+  "vid": 7504,
+  "pid": 24866,
+  "usage_page": 65376,
+  "usage": 97,
+  "output": "%APPDATA%\\vial-helper\\state.json",
+  "poll": "250ms",
+  "report_bytes": 32,
+  "layers": {
+    "0": "QWERTY",
+    "1": "SYMBOLS",
+    "2": "NUMBERS",
+    "3": "FUNCTIONS",
+    "4": "MANAGER",
+    "5": "NAV",
+    "6": "STACK",
+    "7": "UTIL",
+    "8": "MOUSE",
+    "9": "MOUSE-",
+    "10": "MOUSE+",
+    "11": "MOUSE-SCROLL"
+  }
+}

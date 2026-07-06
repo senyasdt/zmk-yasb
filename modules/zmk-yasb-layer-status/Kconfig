@@ -1,0 +1,6 @@
+config ZMK_YASB_LAYER_STATUS
+    bool "ZMK YASB layer status reports"
+    default n
+    depends on RAW_HID
+    help
+      Send compact layer status reports over raw HID for a Windows YASB helper.

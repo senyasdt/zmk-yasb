@@ -1,0 +1,14 @@
+/* Paste into your YASB stylesheet and adjust colors to match your bar theme. */
+.zmk-layer-widget {
+  padding: 0 8px;
+  margin: 0 2px;
+  color: #e8e8e8;
+  background: #24273a;
+  border: 1px solid #3b3f58;
+  border-radius: 6px;
+}
+
+.zmk-layer-widget .zmk-layer-icon {
+  color: #8bd5ca;
+  margin-right: 4px;
+}

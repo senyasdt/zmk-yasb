@@ -1,0 +1,11 @@
+# Paste this under the `widgets:` section in your YASB config.
+zmk_layer:
+  type: "yasb.custom.CustomWidget"
+  options:
+    label: "<span class='zmk-layer-icon'>⌨</span> {data[label]}"
+    label_alt: "<span class='zmk-layer-icon'>⌨</span> {data[label]} · {data[effective]}"
+    class_name: "zmk-layer-widget"
+    exec_options:
+      run_cmd: 'cmd /c type %APPDATA%\vial-helper\state.json'
+      run_interval: 250
+      return_format: "json"
