@@ -30,6 +30,7 @@ static uint32_t last_effective_mask = 0xffffffff;
 static uint8_t last_battery_percent = 0xff;
 static uint8_t peripheral_battery_percent = 0xff;
 static uint8_t last_peripheral_battery_percent = 0xff;
+static bool peripheral_battery_seen;
 static struct k_work_delayable heartbeat_work;
 
 static uint32_t layer_bit(uint8_t layer) {
@@ -76,6 +77,10 @@ static int layer_status_listener(const zmk_event_t *eh) {
         as_zmk_peripheral_battery_state_changed(eh);
 
     if (peripheral_battery_ev != NULL) {
+        if (!peripheral_battery_seen && peripheral_battery_ev->state_of_charge == 0) {
+            return ZMK_EV_EVENT_BUBBLE;
+        }
+        peripheral_battery_seen = true;
         peripheral_battery_percent = peripheral_battery_ev->state_of_charge;
         send_layer_report(true);
         return ZMK_EV_EVENT_BUBBLE;
